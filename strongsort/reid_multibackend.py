@@ -1,25 +1,42 @@
-import sys
 from collections import OrderedDict, namedtuple
-from itertools import islice
 from os.path import exists as file_exists
 from pathlib import Path
 
-import cv2
 import gdown
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
-import torchvision.transforms as transforms
 import torchvision.transforms as T
-from trackers.strong_sort.deep.models import build_model
-from trackers.strong_sort.deep.reid_model_factory import (
-    download_url,
+from yolov5.utils.general import check_requirements, check_version
+
+from strongsort.deep.models import build_model
+from strongsort.deep.reid_model_factory import (
     get_model_name,
     get_model_url,
     load_pretrained_weights,
     show_downloadeable_models,
 )
-from yolov5.utils.general import LOGGER, check_requirements, check_version
+
+
+# kadirnar: I added export_formats to the function
+def export_formats():
+    # YOLOv5 export formats
+    x = [
+        ["PyTorch", "-", ".pt", True, True],
+        ["TorchScript", "torchscript", ".torchscript", True, True],
+        ["ONNX", "onnx", ".onnx", True, True],
+        ["OpenVINO", "openvino", "_openvino_model", True, False],
+        ["TensorRT", "engine", ".engine", False, True],
+        ["CoreML", "coreml", ".mlmodel", True, False],
+        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True],
+        ["TensorFlow GraphDef", "pb", ".pb", True, True],
+        ["TensorFlow Lite", "tflite", ".tflite", True, False],
+        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", False, False],
+        ["TensorFlow.js", "tfjs", "_web_model", False, False],
+        ["PaddlePaddle", "paddle", "_paddle_model", True, True],
+    ]
+    return pd.DataFrame(x, columns=["Format", "Argument", "Suffix", "CPU", "GPU"])
 
 
 def check_suffix(file="yolov5s.pt", suffix=(".pt",), msg=""):
@@ -51,7 +68,6 @@ class ReIDDetectMultiBackend(nn.Module):
             self.tflite,
             self.edgetpu,
             self.tfjs,
-            self.paddle,
         ) = self.model_type(
             w
         )  # get backend
@@ -69,7 +85,6 @@ class ReIDDetectMultiBackend(nn.Module):
         self.transforms += [T.Normalize(mean=self.pixel_mean, std=self.pixel_std)]
         self.preprocess = T.Compose(self.transforms)
         self.to_pil = T.ToPILImage()
-
         model_name = get_model_name(w)
 
         if w.suffix == ".pt":
@@ -185,13 +200,13 @@ class ReIDDetectMultiBackend(nn.Module):
     @staticmethod
     def model_type(p="path/to/model.pt"):
         # Return model type from model path, i.e. path='path/to/model.onnx' -> type=onnx
-        from export import export_formats
-
-        sf = list(export_formats().Suffix)  # export suffixes
-        check_suffix(p, sf)  # checks
-        types = [s in Path(p).name for s in sf]
-        types[8] &= not types[9]  # tflite &= not edgetpu
-        return types
+        suffixes = list(export_formats().Suffix) + [".xml"]  # export suffixes
+        check_suffix(p, suffixes)  # checks
+        p = Path(p).name  # eliminate trailing separators
+        pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, _, xml2 = (s in p for s in suffixes)
+        xml |= xml2  # *_openvino_model or *.xml
+        tflite &= not edgetpu  # *.tflite
+        return pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs
 
     def _preprocess(self, im_batch):
 

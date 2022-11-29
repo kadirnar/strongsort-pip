@@ -1,17 +1,11 @@
-import sys
-from os.path import exists as file_exists
-from os.path import join
-
-import cv2
-import gdown
 import numpy as np
 import torch
-import torchvision.transforms as transforms
-from reid_multibackend import ReIDDetectMultiBackend
-from sort.detection import Detection
-from sort.nn_matching import NearestNeighborDistanceMetric
-from sort.tracker import Tracker
 from yolov5.utils.general import xyxy2xywh
+
+from strongsort.reid_multibackend import ReIDDetectMultiBackend
+from strongsort.sort.detection import Detection
+from strongsort.sort.nn_matching import NearestNeighborDistanceMetric
+from strongsort.sort.tracker import Tracker
 
 
 class StrongSORT(object):
@@ -36,7 +30,7 @@ class StrongSORT(object):
         self.tracker = Tracker(metric, max_iou_distance=max_iou_distance, max_age=max_age, n_init=n_init)
 
     def update(self, dets, ori_img):
-
+        xyxys = dets[:, :4]
         xyxys = dets[:, 0:4]
         confs = dets[:, 4]
         clss = dets[:, 5]

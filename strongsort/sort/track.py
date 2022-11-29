@@ -1,7 +1,8 @@
 # vim: expandtab:ts=4:sw=4
 import cv2
 import numpy as np
-from trackers.strong_sort.sort.kalman_filter import KalmanFilter
+
+from strongsort.sort.kalman_filter import KalmanFilter
 
 
 class TrackState:
@@ -187,7 +188,6 @@ class Track:
         try:
             (cc, warp_matrix) = cv2.findTransformECC(src_r, dst_r, warp_matrix, warp_mode, criteria, None, 1)
         except cv2.error as e:
-            print("ecc transform failed")
             return None, None
 
         if scale is not None:
