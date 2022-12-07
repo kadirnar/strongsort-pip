@@ -35,6 +35,9 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires=">=3.6",
     install_requires=get_requirements(),
+    extras_require={
+        "dev": ["black>=21.7b0", "isort>=5.9.2"],
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Operating System :: OS Independent",
