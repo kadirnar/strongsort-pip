@@ -5,6 +5,10 @@
 <h4>
     <img width="700" alt="teaser" src="docs/uav.gif">
 </h4>
+<div>
+    <a href="https://pepy.tech/project/strongsort"><img src="https://pepy.tech/badge/strongsort" alt="downloads"></a>
+    <a href="https://badge.fury.io/py/strongsort"><img src="https://badge.fury.io/py/strongsort.svg" alt="pypi version"></a>
+</div>
 </div>
 
 ## <div align="center">Overview</div>
