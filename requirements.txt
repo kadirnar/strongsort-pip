@@ -4,4 +4,3 @@ motmetrics==1.2.5
 opencv_python==4.6.0.66
 torch==1.13.0
 torchvision==0.14.0
-yolov5==6.2.3
